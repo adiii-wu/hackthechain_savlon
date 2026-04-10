@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { candidates } from '@/lib/mockData';
 
-const apiKey = "AIzaSyA-Fa1gzRKTcDQbNen6Q0wv00JrCZ-Ybsc";
+const apiKey = process.env.GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req: Request) {
