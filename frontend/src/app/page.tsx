@@ -88,11 +88,11 @@ export default function LoginPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Shield size={18} color="var(--emerald-muted)" />
-          <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          <span style={{ fontFamily: 'Space Grotesk, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
             AEGIS <span style={{ color: 'var(--emerald-muted)' }}>PROTOCOL</span>
           </span>
         </div>
-        <Link href="/home" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+        <Link href="/home" style={{ fontSize: '0.85rem', color: '#cbd5e1', textDecoration: 'none', fontWeight: 500 }}>
           ← Back to home
         </Link>
       </nav>
@@ -108,22 +108,22 @@ export default function LoginPage() {
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <div style={{
               width: '56px', height: '56px', borderRadius: '14px', margin: '0 auto 20px',
-              background: 'rgba(169,206,196,0.08)', border: '1px solid rgba(169,206,196,0.2)',
+              background: 'rgba(169,206,196,0.12)', border: '1px solid rgba(169,206,196,0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Lock size={24} color="var(--emerald-muted)" />
             </div>
-            <h1 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.7rem', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)', marginBottom: '8px' }}>
+            <h1 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.9rem', fontWeight: 800, letterSpacing: '-0.03em', color: '#ffffff', marginBottom: '8px', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
               Sign in to Aegis
             </h1>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            <p style={{ fontSize: '0.95rem', color: '#e2e8f0', lineHeight: 1.6, fontWeight: 400 }}>
               Select your role to access the right dashboard
             </p>
           </div>
 
           {/* Role selector */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.75rem', color: '#cbd5e1', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '10px' }}>
               I am a
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -133,29 +133,29 @@ export default function LoginPage() {
                 style={{
                   padding: '18px 16px', borderRadius: '12px', cursor: 'pointer', border: '1px solid',
                   background: role === 'recruiter' ? 'rgba(169,206,196,0.07)' : 'var(--obsidian-800)',
-                  borderColor: role === 'recruiter' ? 'rgba(169,206,196,0.4)' : 'var(--border-subtle)',
+                  borderColor: role === 'recruiter' ? 'var(--emerald-muted)' : 'var(--border-subtle)',
                   textAlign: 'left', transition: 'all 0.2s ease', position: 'relative',
-                  boxShadow: role === 'recruiter' ? '0 0 20px rgba(169,206,196,0.08)' : 'none',
+                  boxShadow: role === 'recruiter' ? '0 0 20px rgba(169,206,196,0.15)' : 'none',
                 }}
               >
                 {role === 'recruiter' && (
                   <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                    <CheckCircle2 size={14} color="var(--emerald-muted)" />
+                    <CheckCircle2 size={16} color="var(--emerald-muted)" />
                   </div>
                 )}
                 <div style={{
                   width: '34px', height: '34px', borderRadius: '8px', marginBottom: '10px',
-                  background: role === 'recruiter' ? 'rgba(169,206,196,0.12)' : 'var(--obsidian-700)',
-                  border: `1px solid ${role === 'recruiter' ? 'rgba(169,206,196,0.25)' : 'var(--border-subtle)'}`,
+                  background: role === 'recruiter' ? 'rgba(169,206,196,0.15)' : 'var(--obsidian-700)',
+                  border: `1px solid ${role === 'recruiter' ? 'rgba(169,206,196,0.4)' : 'var(--border-subtle)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Building2 size={16} color={role === 'recruiter' ? 'var(--emerald-muted)' : 'var(--text-muted)'} />
+                  <Building2 size={16} color={role === 'recruiter' ? 'var(--emerald-muted)' : '#cbd5e1'} />
                 </div>
-                <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: role === 'recruiter' ? 'var(--text-primary)' : 'var(--text-secondary)', marginBottom: '3px' }}>
+                <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>
                   Recruiter
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  Access Command Center &amp; candidate profiles
+                <div style={{ fontSize: '0.75rem', color: role === 'recruiter' ? '#e2e8f0' : '#cbd5e1', lineHeight: 1.4 }}>
+                  Access Command Center &amp; profiles
                 </div>
               </button>
 
@@ -165,29 +165,29 @@ export default function LoginPage() {
                 style={{
                   padding: '18px 16px', borderRadius: '12px', cursor: 'pointer', border: '1px solid',
                   background: role === 'candidate' ? 'rgba(212,168,83,0.06)' : 'var(--obsidian-800)',
-                  borderColor: role === 'candidate' ? 'rgba(212,168,83,0.4)' : 'var(--border-subtle)',
+                  borderColor: role === 'candidate' ? 'var(--amber-trust)' : 'var(--border-subtle)',
                   textAlign: 'left', transition: 'all 0.2s ease', position: 'relative',
-                  boxShadow: role === 'candidate' ? '0 0 20px rgba(212,168,83,0.07)' : 'none',
+                  boxShadow: role === 'candidate' ? '0 0 20px rgba(212,168,83,0.15)' : 'none',
                 }}
               >
                 {role === 'candidate' && (
                   <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
-                    <CheckCircle2 size={14} color="var(--amber-trust)" />
+                    <CheckCircle2 size={16} color="var(--amber-trust)" />
                   </div>
                 )}
                 <div style={{
                   width: '34px', height: '34px', borderRadius: '8px', marginBottom: '10px',
-                  background: role === 'candidate' ? 'rgba(212,168,83,0.1)' : 'var(--obsidian-700)',
-                  border: `1px solid ${role === 'candidate' ? 'rgba(212,168,83,0.25)' : 'var(--border-subtle)'}`,
+                  background: role === 'candidate' ? 'rgba(212,168,83,0.15)' : 'var(--obsidian-700)',
+                  border: `1px solid ${role === 'candidate' ? 'rgba(212,168,83,0.4)' : 'var(--border-subtle)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <User size={16} color={role === 'candidate' ? 'var(--amber-trust)' : 'var(--text-muted)'} />
+                  <User size={16} color={role === 'candidate' ? 'var(--amber-trust)' : '#cbd5e1'} />
                 </div>
-                <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: role === 'candidate' ? 'var(--text-primary)' : 'var(--text-secondary)', marginBottom: '3px' }}>
+                <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>
                   Candidate
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                  View your profile, take exams &amp; upload docs
+                <div style={{ fontSize: '0.75rem', color: role === 'candidate' ? '#e2e8f0' : '#cbd5e1', lineHeight: 1.4 }}>
+                  View profile, exams &amp; docs
                 </div>
               </button>
             </div>
@@ -198,12 +198,12 @@ export default function LoginPage() {
 
             {/* Username */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '7px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Username
               </label>
               <div style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                  <User size={14} color={errors.username ? '#f87171' : 'var(--text-muted)'} />
+                  <User size={16} color={errors.username ? '#f87171' : '#cbd5e1'} />
                 </div>
                 <input
                   id="username"
@@ -213,31 +213,31 @@ export default function LoginPage() {
                   placeholder="e.g. arjun_mehta"
                   style={{
                     width: '100%', background: 'var(--obsidian-800)', borderRadius: '9px',
-                    border: `1px solid ${errors.username ? 'rgba(248,113,113,0.5)' : 'var(--border-subtle)'}`,
-                    padding: '11px 12px 11px 36px', color: 'var(--text-primary)', fontSize: '0.875rem',
+                    border: `1px solid ${errors.username ? 'rgba(248,113,113,0.6)' : 'rgba(203, 213, 225, 0.2)'}`,
+                    padding: '12px 14px 12px 38px', color: '#ffffff', fontSize: '0.9rem',
                     outline: 'none', fontFamily: 'Inter, sans-serif', transition: 'border-color 0.2s',
-                    boxShadow: errors.username ? '0 0 0 3px rgba(248,113,113,0.08)' : 'none',
+                    boxShadow: errors.username ? '0 0 0 3px rgba(248,113,113,0.1)' : 'none',
                   }}
-                  onFocus={e => { if (!errors.username) e.target.style.borderColor = 'var(--border-active)'; }}
-                  onBlur={e => { if (!errors.username) e.target.style.borderColor = 'var(--border-subtle)'; }}
+                  onFocus={e => { if (!errors.username) e.target.style.borderColor = 'rgba(203, 213, 225, 0.5)'; }}
+                  onBlur={e => { if (!errors.username) e.target.style.borderColor = 'rgba(203, 213, 225, 0.2)'; }}
                 />
               </div>
               {errors.username && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px' }}>
-                  <AlertCircle size={11} color="#f87171" />
-                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>{errors.username}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                  <AlertCircle size={12} color="#f87171" />
+                  <span style={{ fontSize: '0.75rem', color: '#fca5a5', fontWeight: 500 }}>{errors.username}</span>
                 </div>
               )}
             </div>
 
             {/* Email */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '7px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Email Address
               </label>
               <div style={{ position: 'relative' }}>
                 <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                  <Mail size={14} color={errors.email ? '#f87171' : 'var(--text-muted)'} />
+                  <Mail size={16} color={errors.email ? '#f87171' : '#cbd5e1'} />
                 </div>
                 <input
                   id="email"
@@ -247,26 +247,26 @@ export default function LoginPage() {
                   placeholder="yourname@gmail.com"
                   style={{
                     width: '100%', background: 'var(--obsidian-800)', borderRadius: '9px',
-                    border: `1px solid ${errors.email ? 'rgba(248,113,113,0.5)' : 'var(--border-subtle)'}`,
-                    padding: '11px 40px 11px 36px', color: 'var(--text-primary)', fontSize: '0.875rem',
+                    border: `1px solid ${errors.email ? 'rgba(248,113,113,0.6)' : 'rgba(203, 213, 225, 0.2)'}`,
+                    padding: '12px 42px 12px 38px', color: '#ffffff', fontSize: '0.9rem',
                     outline: 'none', fontFamily: 'Inter, sans-serif', transition: 'border-color 0.2s',
-                    boxShadow: errors.email ? '0 0 0 3px rgba(248,113,113,0.08)' : 'none',
+                    boxShadow: errors.email ? '0 0 0 3px rgba(248,113,113,0.1)' : 'none',
                   }}
-                  onFocus={e => { if (!errors.email) e.target.style.borderColor = 'var(--border-active)'; }}
-                  onBlur={e => { if (!errors.email) e.target.style.borderColor = 'var(--border-subtle)'; }}
+                  onFocus={e => { if (!errors.email) e.target.style.borderColor = 'rgba(203, 213, 225, 0.5)'; }}
+                  onBlur={e => { if (!errors.email) e.target.style.borderColor = 'rgba(203, 213, 225, 0.2)'; }}
                 />
                 <button
                   onClick={() => setShowEmail(s => !s)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: 'var(--text-muted)' }}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#cbd5e1' }}
                   type="button"
                 >
-                  {showEmail ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showEmail ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {errors.email && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px' }}>
-                  <AlertCircle size={11} color="#f87171" />
-                  <span style={{ fontSize: '0.72rem', color: '#f87171' }}>{errors.email}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                  <AlertCircle size={12} color="#f87171" />
+                  <span style={{ fontSize: '0.75rem', color: '#fca5a5', fontWeight: 500 }}>{errors.email}</span>
                 </div>
               )}
             </div>
@@ -274,9 +274,9 @@ export default function LoginPage() {
 
           {/* Role not selected warning */}
           {!role && form.username && form.email && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(212,168,83,0.06)', border: '1px solid rgba(212,168,83,0.15)', marginBottom: '16px' }}>
-              <AlertCircle size={13} color="var(--amber-trust)" />
-              <span style={{ fontSize: '0.78rem', color: 'var(--amber-trust)' }}>Please select your role above</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', borderRadius: '10px', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', marginBottom: '16px' }}>
+              <AlertCircle size={14} color="#fbbf24" />
+              <span style={{ fontSize: '0.82rem', fontWeight: 500, color: '#fbbf24' }}>Please select your role above</span>
             </div>
           )}
 
@@ -285,48 +285,48 @@ export default function LoginPage() {
             onClick={handleLogin}
             disabled={loading || !isFormReady}
             style={{
-              width: '100%', padding: '13px', borderRadius: '10px', border: 'none', cursor: isFormReady && !loading ? 'pointer' : 'not-allowed',
+              width: '100%', padding: '15px', borderRadius: '10px', border: 'none', cursor: isFormReady && !loading ? 'pointer' : 'not-allowed',
               background: success
                 ? 'rgba(169,206,196,0.15)'
                 : role === 'candidate'
                   ? 'var(--amber-trust)'
-                  : 'var(--emerald-muted)',
-              color: success ? 'var(--emerald-muted)' : 'var(--obsidian-900)',
-              fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.95rem', fontWeight: 700,
-              opacity: !isFormReady ? 0.4 : 1,
+                  : role === 'recruiter' ? 'var(--emerald-muted)' : 'var(--obsidian-700)',
+              color: success ? 'var(--emerald-muted)' : !isFormReady ? '#64748b' : 'var(--obsidian-900)',
+              fontFamily: 'Space Grotesk, sans-serif', fontSize: '1rem', fontWeight: 700,
+              opacity: !isFormReady ? 0.6 : 1,
               transition: 'all 0.25s ease',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              boxShadow: isFormReady && !loading ? `0 4px 20px rgba(${role === 'candidate' ? '212,168,83' : '169,206,196'},0.25)` : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+              boxShadow: isFormReady && !loading ? `0 4px 24px rgba(${role === 'candidate' ? '212,168,83' : '169,206,196'},0.3)` : 'none',
             }}
           >
             {loading ? (
               <>
-                <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: 'var(--obsidian-900)', animation: 'spin 0.8s linear infinite' }} />
+                <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2.5px solid rgba(0,0,0,0.2)', borderTopColor: 'var(--obsidian-900)', animation: 'spin 0.8s linear infinite' }} />
                 Authenticating...
               </>
             ) : success ? (
               <>
-                <CheckCircle2 size={16} color="var(--emerald-muted)" />
+                <CheckCircle2 size={18} color="var(--emerald-muted)" />
                 Redirecting...
               </>
             ) : (
               <>
                 Enter {role === 'recruiter' ? 'Command Center' : role === 'candidate' ? 'My Dashboard' : 'Aegis'}
-                <ArrowRight size={16} />
+                <ArrowRight size={18} />
               </>
             )}
           </button>
 
           {/* Divider + decorative info */}
-          <div style={{ marginTop: '28px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ marginTop: '32px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
               <div className="divider" />
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>secured by</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.05em' }}>secured by</span>
               <div className="divider" />
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
               {['Blockchain SBT', 'AI Proctor', 'IPFS Lock'].map(tag => (
-                <div key={tag} className="badge badge-ghost" style={{ fontSize: '0.65rem' }}>{tag}</div>
+                <div key={tag} className="badge badge-ghost" style={{ fontSize: '0.67rem', fontWeight: 600, color: '#cbd5e1' }}>{tag}</div>
               ))}
             </div>
           </div>

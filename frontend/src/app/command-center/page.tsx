@@ -44,17 +44,29 @@ export default function CommandCenter() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: userMsg })
       });
+      
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+
       const data = await res.json();
       if (data.success && data.ai) {
         setMessages(prev => [...prev, { role: 'ai', content: data.ai.reply }]);
         if (data.ai.filterString) {
-           setSearch(data.ai.filterString); // Map AI insight directly to the table filter
+           setSearch(data.ai.filterString);
         }
+      } else {
+        const errorMsg = res.status === 429 
+          ? "DeepMind's AI quota reached. Please wait 1 minute before your next message."
+          : (data.error || 'Aegis Intelligence is currently unavailable.');
+        setMessages(prev => [...prev, { role: 'ai', content: errorMsg }]);
       }
-    } catch {
-       setMessages(prev => [...prev, { role: 'ai', content: 'Connection to Aegis Intelligence interrupted.' }]);
+    } catch (err) {
+       console.error("Chat Error:", err);
+       setMessages(prev => [...prev, { role: 'ai', content: 'Connection to Aegis Intelligence lost. Check your API key or wait for quota reset.' }]);
+    } finally {
+      setIsTyping(false);
     }
-    setIsTyping(false);
   }
 
   useEffect(() => {

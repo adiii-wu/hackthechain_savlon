@@ -2,39 +2,72 @@ import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { candidates } from '@/lib/mockData';
 
-const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
-
 export async function POST(req: Request) {
+  const apiKey = process.env.GEMINI_API_KEY || "";
+  const genAI = new GoogleGenerativeAI(apiKey);
+
   try {
+    if (!apiKey) {
+      console.error("AI Route Error: GEMINI_API_KEY is missing from environment.");
+      return NextResponse.json({ 
+        success: false, 
+        error: 'API Key Missing. Please restart your dev server after adding it to .env.local' 
+      }, { status: 500 });
+    }
+
     const { prompt } = await req.json();
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      generationConfig: { responseMimeType: "application/json" }
+      model: "gemini-2.0-flash",
+      generationConfig: { 
+        responseMimeType: "application/json",
+        temperature: 0.2 
+      }
     });
 
-    const systemPrompt = `You are Aegis Intelligence, an AI Recruiter assistant.
-Here is the JSON list of available talent on the Aegis Protocol platform:
+    const systemPrompt = `You are Aegis Intelligence, an AI Recruiter assistant. 
+Analytical, precise, and professional. 
+Available talent pool (JSON):
 ${JSON.stringify(candidates)}
 
-Analyze the candidate data to answer the recruiter's query.
-You must return your output ONLY as a strict JSON object with this shape:
+Analyze the data to answer: ${prompt}
+Return ONLY valid JSON:
 {
-  "reply": "Conversational answer discussing the best candidates for the query.",
-  "filterString": "A single exact phrase (e.g. 'React', 'Python', 'Arjun') that the UI should place in the search bar to show the referenced candidates. Leave empty string if no specific filter is needed."
-}
-
-Recruiter's query: ${prompt}`;
+  "reply": "Conversational answer here.",
+  "filterString": "Skill prefix or name for filtering, or empty string."
+}`;
 
     const result = await model.generateContent(systemPrompt);
     let text = result.response.text();
+    
+    // Advanced cleaning for potential markdown artifacts
     text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+    
+    try {
+      const parsed = JSON.parse(text);
+      return NextResponse.json({ success: true, ai: parsed });
+    } catch (parseErr) {
+      console.error("JSON Parse Error:", text);
+      return NextResponse.json({ 
+        success: false, 
+        error: "AI returned an invalid response format. Please try again." 
+      }, { status: 500 });
+    }
 
-    return NextResponse.json({ success: true, ai: JSON.parse(text) });
+  } catch (error: any) {
+    console.error("Recruiter AI Route Error:", error);
+    
+    // Check for Rate Limit (429)
+    if (error.message?.includes("429") || error.status === 429) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Rate limit exceeded. Please wait 60 seconds and try again.' 
+      }, { status: 429 });
+    }
 
-  } catch (error) {
-    console.error("Recruiter AI Error:", error);
-    return NextResponse.json({ success: false, error: 'AI processing failed' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message || 'AI processing encountered an unexpected error.' 
+    }, { status: 500 });
   }
 }
