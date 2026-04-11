@@ -30,9 +30,12 @@ export default function SBTBadge({ hash, sbtId, name, issuer }: SBTBadgeProps) {
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {name}
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-            <CheckCircle2 size={11} color="var(--emerald-muted)" />
-            <span style={{ fontSize: '0.65rem', color: 'var(--emerald-muted)', fontWeight: 600 }}>Verified</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>Polygon</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <CheckCircle2 size={11} color="var(--emerald-muted)" />
+              <span style={{ fontSize: '0.65rem', color: 'var(--emerald-muted)', fontWeight: 600 }}>Verified</span>
+            </div>
           </div>
         </div>
         <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{issuer}</div>

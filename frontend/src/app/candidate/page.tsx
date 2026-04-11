@@ -8,7 +8,10 @@ import Topbar from '@/components/Topbar';
 import TrustRing from '@/components/TrustRing';
 import ActivityBadge from '@/components/ActivityBadge';
 import SBTBadge from '@/components/SBTBadge';
+import AegisVault from '@/components/AegisVault';
 import { candidates } from '@/lib/mockData';
+import { getVaultData, mintSBT } from '@/lib/blockchain';
+import { addCertToProfile } from '@/lib/mockData';
 
 interface SessionUser {
   username: string;
@@ -26,6 +29,11 @@ export default function CandidateDashboard() {
     if (!raw) { router.push('/'); return; }
     const parsed: SessionUser = JSON.parse(raw);
     if (parsed.role !== 'candidate') { router.push('/command-center'); return; }
+    
+    // Dynamically update the mock candidate identity to match the session
+    candidates[0].name = parsed.username;
+    candidates[0].avatar = parsed.username.slice(0, 2).toUpperCase();
+    
     setUser(parsed);
   }, [router]);
 
@@ -51,9 +59,19 @@ export default function CandidateDashboard() {
       });
       const data = await res.json();
       if (data.success) {
+        // Mint on Blockchain (Simulation)
+        const mintedSBT = await mintSBT(profile.id, certName, data.certificate.ipfsHash || "QmXoyp...MOCK");
+        
+        // Global persistence
+        const certObj = {
+          ...data.certificate,
+          sbtId: mintedSBT.tokenId
+        };
+        addCertToProfile(profile.id, certObj);
+
         setProfile(prev => ({
           ...prev,
-          certifications: [data.certificate, ...prev.certifications],
+          certifications: [certObj, ...prev.certifications],
           assessments: [data.assignedExam, ...prev.assessments]
         }));
         setShowModal(false);
@@ -160,9 +178,43 @@ export default function CandidateDashboard() {
           </div>
 
           {/* ── TWO COLUMNS ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '20px', marginBottom: '20px' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Aegis Vault (Blockchain View) */}
+              <AegisVault sbtList={getVaultData().filter(s => s.owner === profile.id)} />
 
-            {/* Certifications */}
+              {/* Upcoming / Assessments */}
+              <div className="card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <FlaskConical size={14} color="var(--amber-trust)" />
+                  <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>My Assessments</h3>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {profile.assessments.map(a => (
+                    <div key={a.id} style={{ padding: '12px', borderRadius: '10px', background: 'var(--obsidian-700)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>{a.name}</span>
+                        <TrustRing score={a.proctorScore} size={40} strokeWidth={3} color="var(--amber-trust)" />
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{a.date} · {a.duration}</div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${(a.score / a.maxScore) * 100}%` }} />
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px' }}>Score: {a.score}/{a.maxScore}</div>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/sentinel" style={{ textDecoration: 'none' }}>
+                  <button className="btn-primary" style={{ width: '100%', marginTop: '14px', justifyContent: 'center' }}>
+                    <FlaskConical size={13} />
+                    Take New Assessment
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Certifications (Standard List) */}
             <div className="card">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                 <Award size={14} color="var(--emerald-muted)" />
@@ -184,34 +236,6 @@ export default function CandidateDashboard() {
               </button>
             </div>
 
-            {/* Upcoming / Assessments */}
-            <div className="card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <FlaskConical size={14} color="var(--amber-trust)" />
-                <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>My Assessments</h3>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {profile.assessments.map(a => (
-                  <div key={a.id} style={{ padding: '12px', borderRadius: '10px', background: 'var(--obsidian-700)', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>{a.name}</span>
-                      <TrustRing score={a.proctorScore} size={40} strokeWidth={3} color="var(--amber-trust)" />
-                    </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>{a.date} · {a.duration}</div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${(a.score / a.maxScore) * 100}%` }} />
-                    </div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px' }}>Score: {a.score}/{a.maxScore}</div>
-                  </div>
-                ))}
-              </div>
-              <Link href="/sentinel" style={{ textDecoration: 'none' }}>
-                <button className="btn-primary" style={{ width: '100%', marginTop: '14px', justifyContent: 'center' }}>
-                  <FlaskConical size={13} />
-                  Take New Assessment
-                </button>
-              </Link>
-            </div>
           </div>
 
           {/* ── ALERTS / TO-DO ── */}

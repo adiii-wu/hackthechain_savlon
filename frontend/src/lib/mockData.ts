@@ -150,6 +150,25 @@ export const candidates: Candidate[] = [
   },
 ];
 
+export function addCertToProfile(candidateId: string, cert: Certification) {
+  const c = candidates.find(x => x.id === candidateId);
+  if (c) {
+    if (!c.certifications.find(existing => existing.id === cert.id || existing.sbtId === cert.sbtId)) {
+      c.certifications = [cert, ...c.certifications];
+      c.sbtCount = c.certifications.length;
+    }
+  }
+}
+
+export function addAssessmentToProfile(candidateId: string, assessment: Assessment) {
+  const c = candidates.find(x => x.id === candidateId);
+  if (c) {
+    if (!c.assessments.find(existing => existing.id === assessment.id)) {
+      c.assessments = [assessment, ...c.assessments];
+    }
+  }
+}
+
 export const platformStats = {
   totalCandidates: 12487,
   verifiedSBTs: 38924,

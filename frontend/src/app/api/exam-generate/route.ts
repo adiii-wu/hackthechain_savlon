@@ -1,48 +1,42 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateContentWithResilience } from '@/lib/aiHandler';
 
 export async function POST(req: Request) {
-  const apiKey = process.env.GEMINI_API_KEY || "";
-  const genAI = new GoogleGenerativeAI(apiKey);
-
   try {
-    if (!apiKey) {
-      console.error("Exam Route Error: GEMINI_API_KEY is missing from environment.");
-      return NextResponse.json({ 
-        success: false, 
-        error: 'API Key Missing. Please add it to .env.local and RESTART your dev server.' 
-      }, { status: 500 });
-    }
-
     const body = await req.json();
     const { topic = "Senior Frontend Engineer" } = body;
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.2
-      }
+    const prompt = `Generate a high-level technical assessment for the topic: ${topic}.
+The output MUST be a strict JSON array containing exactly 10 advanced multiple-choice questions.
+
+Rules:
+1. No introductory text, no markdown code blocks. Just the array.
+2. 'correct' must be an integer between 0 and 3 corresponding to 'options'.
+3. 'timeLimit' must be between 30 and 120 seconds.
+4. Topics must be highly specific to ${topic}.
+
+Schema:
+[
+  {
+    "id": "q1",
+    "question": "string",
+    "options": ["string", "string", "string", "string"],
+    "correct": number,
+    "timeLimit": number
+  }
+]`;
+
+    const result = await generateContentWithResilience(prompt, {
+      responseMimeType: "application/json",
+      temperature: 0.2
     });
 
-    const prompt = `Generate exactly 10 advanced multiple-choice questions for the topic: ${topic}.
-The output MUST be a strict JSON array of objects.
-Element Schema:
-{
-  "id": "unique_string",
-  "question": "string",
-  "options": ["string", "string", "string", "string"],
-  "correct": number (0-3),
-  "timeLimit": number (seconds)
-}`;
-
-    const result = await model.generateContent(prompt);
-    let text = result.response.text();
+    let text = result.text;
     text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     try {
       const questions = JSON.parse(text);
-      return NextResponse.json({ success: true, questions });
+      return NextResponse.json({ success: true, questions, modelInfo: result.modelUsed });
     } catch (err) {
       console.error("Exam Parse Error:", text);
       return NextResponse.json({ success: false, error: 'AI returned invalid JSON' }, { status: 500 });
@@ -51,11 +45,11 @@ Element Schema:
   } catch (error: any) {
     console.error("Exam Generate Error:", error);
 
-    // Check for Rate Limit (429)
-    if (error.message?.includes("429") || error.status === 429) {
+    // Check for Rate Limit (429) pass-through
+    if (error.status === 429 || error.message?.includes("429")) {
       return NextResponse.json({ 
         success: false, 
-        error: 'AI Rate limit reached. Please wait a minute before generating another exam.' 
+        error: 'AI Rate limit reached. Retrying automatically...' 
       }, { status: 429 });
     }
 

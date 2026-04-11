@@ -5,7 +5,7 @@ import { Eye, Clock, CheckCircle2, XCircle, Camera, AlertTriangle, ChevronRight,
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import TrustRing from '@/components/TrustRing';
-import { sentinelQuestions } from '@/lib/mockData';
+import { candidates, sentinelQuestions, addCertToProfile, addAssessmentToProfile } from '@/lib/mockData';
 
 type Phase = 'intro' | 'exam' | 'results';
 
@@ -28,14 +28,17 @@ export default function Sentinel() {
   const [selected, setSelected] = useState<number | null>(null);
   
   const [generating, setGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const [examQuestions, setExamQuestions] = useState(sentinelQuestions);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(sentinelQuestions.length).fill(null));
 
-  const [timeLeft, setTimeLeft] = useState(60); // initialize with some default, will update when exam starts
+  const [timeLeft, setTimeLeft] = useState(60);
   const [camActive, setCamActive] = useState(false);
   const [eyeWarnings, setEyeWarnings] = useState(0);
   const [tabWarnings, setTabWarnings] = useState(0);
   const [proctorScore, setProctorScore] = useState(100);
+  const [minting, setMinting] = useState(false);
+  const [minted, setMinted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const q = examQuestions[current];
@@ -97,23 +100,112 @@ export default function Sentinel() {
 
   async function startExam() {
     setGenerating(true);
+    setStatusMessage('Connecting to Aegis Intelligence Layer...');
     try {
+      // Simulate status updates for fallback waterfall or latency
+      const statusTimer = setInterval(() => {
+        setStatusMessage(prev => {
+           if (prev.includes('Connecting')) return 'Verifying Polygon Protocol Nodes...';
+           if (prev.includes('Verifying')) return 'Generating Advanced Proof Questions...';
+           if (prev.includes('Generating')) return 'Applying Soulbound Constraints...';
+           return prev;
+        });
+      }, 5000);
+
       const res = await fetch('/api/exam-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: 'Senior Full Stack Engineer' }) // Typically derived from candidate profile
+        body: JSON.stringify({ topic: 'Senior Full Stack Engineer' }) 
       });
+      
+      clearInterval(statusTimer);
       const data = await res.json();
-      if (data.success && data.questions) {
+      
+      if (data.success && data.questions && data.questions.length > 0) {
          setExamQuestions(data.questions);
          setAnswers(Array(data.questions.length).fill(null));
+         setCamActive(true);
+         setPhase('exam');
+      } else {
+         throw new Error("AI failed to return valid questions.");
       }
     } catch(e) {
-      console.error(e);
+      console.error("Exam Load Error:", e);
+      // Fail safely to mock questions so user can still demo
+      setStatusMessage('AI Quota busy. Falling back to local assessment library...');
+      setTimeout(() => {
+        setExamQuestions(sentinelQuestions);
+        setAnswers(Array(sentinelQuestions.length).fill(null));
+        setCamActive(true);
+        setPhase('exam');
+      }, 2000);
+    } finally {
+      setGenerating(false);
     }
-    setGenerating(false);
-    setCamActive(true);
-    setPhase('exam');
+  }
+
+  // Effect to handle Auto-Minting and Result Sync
+  useEffect(() => {
+    if (phase === 'results') {
+      const knowledgeScore = examQuestions.length > 0 ? Math.round((score / examQuestions.length) * 100) : 0;
+      const finalProctor = proctorScore - eyeWarnings * 2 - tabWarnings * 4;
+      
+      const raw = sessionStorage.getItem('aegis_user');
+      const profileInfo = raw ? JSON.parse(raw) : { id: 'c001', username: 'Candidate' };
+      const cId = profileInfo.id || 'c001';
+
+      // Sync the global candidate name for the recruiter view
+      if (cId === 'c001') {
+        candidates[0].name = profileInfo.username;
+        candidates[0].avatar = profileInfo.username.slice(0, 2).toUpperCase();
+      }
+
+      // 1. Always Save assessment result to Recruiter/Candidate ledger
+      addAssessmentToProfile(cId, {
+        id: 'ass-' + Date.now(),
+        name: 'Technical Assessment: Full Stack',
+        score: knowledgeScore,
+        maxScore: 100,
+        proctorScore: finalProctor,
+        date: new Date().toISOString().split('T')[0],
+        duration: '10 min' // Mock duration
+      });
+
+      // 2. Dual Excellence Rule: Both must be > 90/75 for Vault
+      if (finalProctor > 90 && knowledgeScore > 75 && !minted) {
+        handleAutoMint();
+      }
+    }
+  }, [phase]);
+
+  async function handleAutoMint() {
+    setMinting(true);
+    try {
+      const raw = sessionStorage.getItem('aegis_user');
+      const profile = raw ? JSON.parse(raw) : { id: 'user-123', username: 'Candidate' };
+      const examName = 'Sentinel Proctored: Senior Full Stack';
+      
+      // Call blockchain sim
+      const { mintSBT } = await import('@/lib/blockchain');
+      const mintedSBT = await mintSBT(profile.id, examName, "QmSentinel...ProofOfMerit");
+       
+       // Global persistence
+       addCertToProfile(profile.id, {
+         id: 'sentinel-' + Date.now(),
+         name: examName,
+         issuer: 'Aegis Sentinel Protocol',
+         date: new Date().toISOString().split('T')[0],
+         ipfsHash: "QmSentinel...ProofOfMerit",
+         sbtId: mintedSBT.tokenId,
+         verified: true
+       });
+
+       setMinted(true);
+    } catch (err) {
+      console.error("Minting Error:", err);
+    } finally {
+      setMinting(false);
+    }
   }
 
   const score = answers.reduce<number>((sum, a, i) => (a === examQuestions[i]?.correct ? sum + 1 : sum), 0);
@@ -163,8 +255,13 @@ export default function Sentinel() {
 
               <button className="btn-primary" onClick={startExam} disabled={generating} style={{ fontSize: '0.95rem', padding: '12px 32px', opacity: generating ? 0.7 : 1 }}>
                 {generating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Camera size={16} />}
-                {generating ? 'Compiling AI Exam...' : 'Start Proctored Exam'}
+                {generating ? 'Finalizing Protocol...' : 'Start Proctored Exam'}
               </button>
+              {generating && (
+                <div style={{ marginTop: '16px', fontSize: '0.8rem', color: 'var(--emerald-muted)', fontWeight: 500, animation: 'pulse 2s infinite' }}>
+                  {statusMessage}
+                </div>
+              )}
               <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '12px' }}>
                 {examQuestions.length} questions · Mixed time limits · Webcam required
               </p>
@@ -307,11 +404,31 @@ export default function Sentinel() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <div className="badge badge-emerald" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>
-                  SBT will be minted for this result
-                </div>
-                <button className="btn-ghost" onClick={() => { setPhase('intro'); setCurrent(0); setAnswers(Array(examQuestions.length).fill(null)); setProctorScore(100); setEyeWarnings(0); setTabWarnings(0); }}>
+               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+                {(finalProctor > 90 && pct > 75) ? (
+                  <div style={{ 
+                    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', 
+                    borderRadius: '12px', background: 'rgba(169,206,196,0.1)', border: '1px solid var(--emerald-muted)' 
+                  }}>
+                    {minting ? (
+                       <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} color="var(--emerald-muted)" />
+                    ) : (
+                       <Shield size={16} color="var(--emerald-muted)" />
+                    )}
+                    <span style={{ fontSize: '0.85rem', color: 'var(--emerald-muted)', fontWeight: 600 }}>
+                      {minting ? 'Minting Soulbound VeriCert...' : minted ? 'SBT Locked to Polygon Vault' : 'Verifying Requirements...'}
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: '6px 14px', textAlign: 'center' }}>
+                    {finalProctor <= 90 && pct <= 75 
+                       ? 'Both thresholds not met for Vault storage.' 
+                       : finalProctor <= 90 
+                          ? 'Integrity score < 90%. Vault storage bypassed.' 
+                          : 'Knowledge score < 75%. Vault storage bypassed.'}
+                  </div>
+                )}
+                <button className="btn-ghost" onClick={() => { setPhase('intro'); setCurrent(0); setAnswers(Array(examQuestions.length).fill(null)); setProctorScore(100); setEyeWarnings(0); setTabWarnings(0); setMinted(false); }}>
                   Retake Exam
                 </button>
               </div>

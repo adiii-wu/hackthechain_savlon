@@ -8,11 +8,14 @@ import Topbar from '@/components/Topbar';
 import TrustRing from '@/components/TrustRing';
 import ActivityBadge from '@/components/ActivityBadge';
 import SBTBadge from '@/components/SBTBadge';
+import AegisVault from '@/components/AegisVault';
 import { candidates } from '@/lib/mockData';
+import { getVaultData } from '@/lib/blockchain';
 
 export default function TruthProfileContent() {
   const router = useRouter();
   const params = useSearchParams();
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<'recruiter' | 'candidate' | undefined>(undefined);
 
   useEffect(() => {
@@ -22,11 +25,16 @@ export default function TruthProfileContent() {
       return;
     }
     const parsed = JSON.parse(raw);
+    setCurrentUser(parsed);
     setUserRole(parsed.role);
   }, [router]);
 
-  const id = params.get('id') ?? 'c001';
+  const id = params.get('id');
   const c = candidates.find(x => x.id === id) ?? candidates[0];
+  
+  // Use session username if viewing own profile as candidate without explicit ID
+  const displayName = (userRole === 'candidate' && !id) ? currentUser?.username : c.name;
+  const displayAvatar = (userRole === 'candidate' && !id) ? currentUser?.username?.slice(0, 2).toUpperCase() : c.avatar;
 
   const ratingColor = (r: number) => r >= 850 ? 'var(--emerald-muted)' : r >= 700 ? 'var(--amber-trust)' : '#9ca3af';
 
@@ -36,7 +44,7 @@ export default function TruthProfileContent() {
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--obsidian-black)' }}>
       <Sidebar role={userRole} />
       <div style={{ marginLeft: '220px', flex: 1, minWidth: 0 }}>
-        <Topbar title="Truth Profile" subtitle={`Verified identity record for ${c.name}`} />
+        <Topbar title="Truth Profile" subtitle={`Verified identity record for ${displayName}`} />
 
         <main style={{ padding: '28px', maxWidth: '1100px' }}>
 
@@ -58,13 +66,13 @@ export default function TruthProfileContent() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'var(--emerald-muted)',
               }}>
-                {c.avatar}
+                {displayAvatar}
               </div>
 
               {/* Info */}
               <div style={{ flex: 1, minWidth: '200px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                  <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>{c.name}</h2>
+                  <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>{displayName}</h2>
                   <ActivityBadge status={c.activityStatus} />
                 </div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '10px' }}>{c.title}</div>
@@ -72,11 +80,6 @@ export default function TruthProfileContent() {
                   {c.skills.map(s => (
                     <span key={s} className="badge badge-ghost">{s}</span>
                   ))}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px' }}>
-                  <GitBranch size={13} color="var(--text-muted)" />
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>@{c.githubHandle}</span>
-                  <ExternalLink size={11} color="var(--text-muted)" />
                 </div>
               </div>
 
@@ -205,35 +208,45 @@ export default function TruthProfileContent() {
             </div>
           </div>
 
-          {/* ── ASSESSMENTS ── */}
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Award size={15} color="#818cf8" />
-              <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Sentinel Assessments
-              </h3>
-            </div>
-            {c.assessments.length === 0 ? (
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>No assessments completed.</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {c.assessments.map(a => (
-                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '14px', borderRadius: '10px', background: 'var(--obsidian-700)', border: '1px solid var(--border-subtle)' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{a.name}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{a.date} · {a.duration}</div>
-                      <div style={{ marginTop: '8px' }}>
-                        <div className="progress-bar" style={{ marginBottom: '4px' }}>
-                          <div className="progress-fill" style={{ width: `${(a.score / a.maxScore) * 100}%` }} />
-                        </div>
-                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Score: {a.score}/{a.maxScore}</div>
-                      </div>
-                    </div>
-                    <TrustRing score={a.proctorScore} size={52} strokeWidth={3} label="Proctor" color="var(--amber-trust)" />
-                  </div>
-                ))}
+          {/* ── ASSESSMENTS & VAULT ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: '20px', marginBottom: '20px' }}>
+            
+            {/* Left: Assessments */}
+            <div className="card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <Award size={15} color="#818cf8" />
+                <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                  Sentinel Assessments
+                </h3>
               </div>
-            )}
+              {c.assessments.length === 0 ? (
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>No assessments completed.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {c.assessments.map(a => (
+                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '14px', borderRadius: '10px', background: 'var(--obsidian-700)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{a.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{a.date} · {a.duration}</div>
+                        <div style={{ marginTop: '8px' }}>
+                          <div className="progress-bar" style={{ marginBottom: '4px' }}>
+                            <div className="progress-fill" style={{ width: `${(a.score / a.maxScore) * 100}%` }} />
+                          </div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Score: {a.score}/{a.maxScore}</div>
+                        </div>
+                      </div>
+                      <TrustRing score={a.proctorScore} size={52} strokeWidth={3} label="Proctor" color="var(--amber-trust)" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Protocol Verification (Vault) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <AegisVault sbtList={getVaultData().filter(s => s.owner === c.id)} isRecruiter={true} />
+            </div>
+
           </div>
         </main>
       </div>
